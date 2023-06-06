@@ -7,13 +7,13 @@ resource "aws_api_gateway_rest_api" "shrek" {
   }
 }
 
-################################# GET ACTION #######################################
-
 resource "aws_api_gateway_resource" "shrek_root" {
   rest_api_id = aws_api_gateway_rest_api.shrek.id
   parent_id   = aws_api_gateway_rest_api.shrek.root_resource_id
   path_part   = "{proxy+}"
 }
+
+################################# GET ACTION #######################################
 
 resource "aws_api_gateway_method" "GetMethod" {
   rest_api_id   = aws_api_gateway_rest_api.shrek.id
@@ -87,7 +87,7 @@ resource "aws_api_gateway_method_response" "Put200" {
 resource "aws_api_gateway_integration" "PutInt" {
   rest_api_id             = aws_api_gateway_rest_api.shrek.id
   resource_id             = aws_api_gateway_resource.shrek_root.id
-  http_method             = aws_api_gateway_method.GetMethod.http_method
+  http_method             = aws_api_gateway_method.PutMethod.http_method
   integration_http_method = "POST"
   type                    = "AWS"
   uri                     = aws_lambda_function.ShrekGet.invoke_arn
@@ -97,7 +97,7 @@ resource "aws_api_gateway_integration_response" "PutResponse200" {
   depends_on  = [aws_api_gateway_integration.PutInt]
   rest_api_id = aws_api_gateway_rest_api.shrek.id
   resource_id = aws_api_gateway_resource.shrek_root.id
-  http_method = aws_api_gateway_method.GetMethod.http_method
+  http_method = aws_api_gateway_method.PutMethod.http_method
   status_code = "200"
 
   response_parameters = {
@@ -120,6 +120,13 @@ resource "aws_api_gateway_deployment" "shrekDeployment" {
   lifecycle {
     create_before_destroy = true
   }
+
+  depends_on = [
+    aws_api_gateway_method.GetMethod,
+    aws_api_gateway_method.PutMethod,
+    aws_api_gateway_integration.GetInt,
+    aws_api_gateway_integration.PutInt,
+  ]
 }
 
 resource "aws_api_gateway_stage" "shrekStage" {
