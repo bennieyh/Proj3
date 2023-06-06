@@ -123,7 +123,7 @@ resource "aws_api_gateway_deployment" "shrekDeployment" {
 }
 
 resource "aws_api_gateway_stage" "shrekStage" {
-  deployment_id = aws_api_gateway_deployment.shrek.id
+  deployment_id = aws_api_gateway_deployment.shrekDeployment.id
   rest_api_id   = aws_api_gateway_rest_api.shrek.id
   stage_name    = "prod"
 }
