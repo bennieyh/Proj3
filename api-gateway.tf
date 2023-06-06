@@ -139,7 +139,7 @@ resource "aws_api_gateway_stage" "shrekStage" {
 ############################ LAMBDA PERMISSION ################################
 
 resource "aws_lambda_permission" "ShrekGet" {
-  function_name = aws_lambda_function.ShrekGet.id
+  function_name = aws_lambda_function.ShrekGet.function_name
   statement_id  = "AllowExecutionFromApiGateway"
   action        = "lambda:InvokeFunction"
   principal     = "apigateway.amazonaws.com"
@@ -147,7 +147,7 @@ resource "aws_lambda_permission" "ShrekGet" {
 }
 
 resource "aws_lambda_permission" "ShrekPut" {
-  function_name = aws_lambda_function.ShrekPut.id
+  function_name = aws_lambda_function.ShrekPut.function_name
   statement_id  = "AllowExecutionFromApiGateway"
   action        = "lambda:InvokeFunction"
   principal     = "apigateway.amazonaws.com"
