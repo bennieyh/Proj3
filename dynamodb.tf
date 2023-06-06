@@ -3,21 +3,16 @@ resource "aws_dynamodb_table" "score_board" {
   billing_mode   = "PROVISIONED"
   read_capacity  = 20
   write_capacity = 20
-  hash_key       = "rank"
-  range_key      = "Score"
+  hash_key       = "PlayerName"
+  range_key      = "HighScore"
 
   attribute {
-    name = "rank"
+    name = "PlayerName"
     type = "S"
   }
 
   attribute {
-    name = "playername"
-    type = "S"
-  }
-
-  attribute {
-    name = "highscore"
+    name = "HighScore"
     type = "N"
   }
 
