@@ -83,3 +83,66 @@ resource "aws_api_gateway_method_response" "Put200" {
     "method.response.header.Access-Control-Allow-Origin"  = true
   }
 }
+
+resource "aws_api_gateway_integration" "PutInt" {
+  rest_api_id             = aws_api_gateway_rest_api.shrek.id
+  resource_id             = aws_api_gateway_resource.shrek_root.id
+  http_method             = aws_api_gateway_method.GetMethod.http_method
+  integration_http_method = "POST"
+  type                    = "AWS"
+  uri                     = aws_lambda_function.ShrekGet.invoke_arn
+}
+
+resource "aws_api_gateway_integration_response" "PutResponse200" {
+  depends_on  = [aws_api_gateway_integration.PutInt]
+  rest_api_id = aws_api_gateway_rest_api.shrek.id
+  resource_id = aws_api_gateway_resource.shrek_root.id
+  http_method = aws_api_gateway_method.GetMethod.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'*'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
+
+################## DEPLOYMENT & STAGE ###################################
+
+resource "aws_api_gateway_deployment" "shrekDeployment" {
+  rest_api_id = aws_api_gateway_rest_api.shrek.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.shrek.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "shrekStage" {
+  deployment_id = aws_api_gateway_deployment.shrek.id
+  rest_api_id   = aws_api_gateway_rest_api.shrek.id
+  stage_name    = "prod"
+}
+
+
+############################ LAMBDA PERMISSION ################################
+
+resource "aws_lambda_permission" "ShrekGet" {
+  function_name = aws_lambda_function.ShrekGet.id
+  statement_id  = "AllowExecutionFromApiGateway"
+  action        = "lambda:InvokeFunction"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.shrek.execution_arn}/*"
+}
+
+resource "aws_lambda_permission" "ShrekPut" {
+  function_name = aws_lambda_function.ShrekPut.id
+  statement_id  = "AllowExecutionFromApiGateway"
+  action        = "lambda:InvokeFunction"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.shrek.execution_arn}/*"
+}
