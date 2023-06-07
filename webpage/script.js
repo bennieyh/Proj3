@@ -82,3 +82,4 @@ function updateLeaderboard() {
 
 // Call the function to initially populate the leaderboard
 updateLeaderboard();
+
