@@ -88,9 +88,9 @@ resource "aws_api_gateway_integration" "PutInt" {
   rest_api_id             = aws_api_gateway_rest_api.shrek.id
   resource_id             = aws_api_gateway_resource.shrek_root.id
   http_method             = aws_api_gateway_method.PutMethod.http_method
-  integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.ShrekGet.invoke_arn
+  integration_http_method = "PUT"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.ShrekPut.invoke_arn
 }
 
 resource "aws_api_gateway_integration_response" "PutResponse200" {
@@ -148,7 +148,7 @@ resource "aws_lambda_permission" "ShrekGet" {
 
 resource "aws_lambda_permission" "ShrekPut" {
   function_name = aws_lambda_function.ShrekPut.function_name
-  statement_id  = "AllowExecutionFromApiGateway"
+  statement_id  = "AllowExecutionFromApiGatewayPut"
   action        = "lambda:InvokeFunction"
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.shrek.execution_arn}/*"
