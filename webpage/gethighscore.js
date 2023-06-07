@@ -1,20 +1,20 @@
-export const snakeget = "https://l6eyjy00sb.execute-api.us-east-1.amazonaws.com/prod/{proxy+}";
+export const ShrekGet = "https://l6eyjy00sb.execute-api.us-east-1.amazonaws.com/prod/{proxy+}";
 
-export async function gethighscores() {
+export async function getHighScore() {
   try {
-    const response = await fetch(shrekget);
+    const response = await fetch(ShrekGet);
     const data = await response.json();
 
     // Map each object in the data array to a new object with properties playername and highscore
-    const highscores = data.map(item => ({
-      playername: item.playername.S,
-      highscore: parseInt(item.highscore.N)
+    const HighScore = data.map(item => ({
+      PlayerName: item.PlayerName.S,
+      HighScore: parseInt(item.HighScore.N)
     }));
 
-    return highscores;
+    return HighScore;
   } catch (error) {
     console.log(error);
     return null;
   }
 }
-gethighscores().then((data) => console.log(data)).catch((error) => console.error(error));
+getHighScore().then((data) => console.log(data)).catch((error) => console.error(error));
