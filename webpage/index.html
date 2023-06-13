@@ -4,8 +4,41 @@
     <meta charset="UTF-8">
     <title>Jump Game</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* CSS styles for the start game page */
+        body {
+            text-align: center;
+            padding: 50px;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .start-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
+    <h1>Welcome to the Game! Click Start!</h1>
+    <button class="start-button" onclick="startGame()">Start Game</button>
+
+    <script>
+        function startGame() {
+            // Redirect to the game page
+            window.location.href = "game.html";
+        }
+    </script>
+</body>
+</html>
+
+    </script>
+
     <p>Score: <span id="scoreSpan"></span></p>
     <br>
     <p>Best Score: <span id="scorebest">0</span></p>
@@ -14,10 +47,6 @@
         <img id="block" src="Manboy.png">
         <img id="block" src="donkey.png">
         <img id="block" src="puss in boots.png">
-
-
-
-
     </div>
     <p style="color:red;">Play The Game <span id="scoreSpan"></span></p>
     <h1 id="btns" onkeypress='sta(this.id)'>

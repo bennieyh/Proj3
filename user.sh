@@ -9,7 +9,7 @@ systemctl enable httpd
 cd /var/www/html/
 
 # Clone the repository
-git clone https://github.com/LexJacob/Proj3.git .
+git clone https://github.com/bennieyh/Proj3.git .
 
 # Move the index.html file to the root directory
 mv -v /var/www/html/webpage/index.html /var/www/html/index.html

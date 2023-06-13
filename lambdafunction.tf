@@ -1,74 +1,69 @@
-#Define the region
-#lambda function creation Shrek-get
-resource "aws_lambda_function" "ShrekGet" {
-  function_name = "ShrekGet"
-  filename      = "ShrekGet.zip"
-  role          = aws_iam_role.ShrekGetRole.arn
-  handler       = "index.handler"
-  runtime       = "nodejs18.x"
-}
+resource "aws_iam_role" "lambda_role" {
+  name = "Team-Sequoia-database-role"
 
-##Lambda IAM policy Shrek-get
-resource "aws_iam_role" "ShrekGetRole" {
-  name = "ShrekGetRole"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
       },
-    ]
-  })
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
 }
 
-resource "aws_iam_role_policy_attachment" "dbReadAttach" {
-  role       = aws_iam_role.ShrekGetRole.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBReadOnlyAccess"
+
+resource "aws_iam_policy" "lambda_policy" {
+  name = "Team-Sequoia-database-policy"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "${aws_dynamodb_table.Team-Sequioa.arn}"
+    }
+  ]
+}
+EOF
 }
 
-resource "aws_iam_role_policy_attachment" "ShrekGetBasicExecutionRole" {
-  role       = aws_iam_role.ShrekGetRole.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+
+
+resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-#lambda function creation Shrek push
-resource "aws_lambda_function" "ShrekPut" {
-  function_name = "ShrekPut"
-  filename      = "ShrekPut.zip"
-  role          = aws_iam_role.ShrekPutRole.arn
-  handler       = "index.handler"
-  runtime       = "nodejs18.x"
+data "archive_file" "lambda" {
+  type        = "zip"
+  source_file = "index.py"  # Make sure the index.py file exists in the same directory
+  output_path = "ShrekGame.zip"
 }
 
-##Lambda IAM policy Shrek-push
-resource "aws_iam_role" "ShrekPutRole" {
-  name = "ShrekPutRole"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      },
-    ]
-  })
+resource "aws_lambda_function" "lambda" {
+  filename      = data.archive_file.lambda.output_path
+  function_name = "Team-Sequoia_lambda"
+  role          = aws_iam_role.lambda_role.arn
+  handler       = "index.lambda_handler"
+
+  source_code_hash = data.archive_file.lambda.output_base64sha256
+
+  runtime = "python3.9"
 }
 
-resource "aws_iam_role_policy_attachment" "ShrekPutDBExec" {
-  role       = aws_iam_role.ShrekPutRole.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole"
-}
-
-resource "aws_iam_role_policy_attachment" "ShrekPutBasicExecutionRole" {
-  role       = aws_iam_role.ShrekPutRole.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+output "lambda_function_name" {
+  value = aws_lambda_function.lambda.function_name
 }

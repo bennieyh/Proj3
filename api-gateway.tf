@@ -1,81 +1,66 @@
-resource "aws_api_gateway_rest_api" "shrek" {
-  name        = "Sequoia-proj3"
-  description = "This is the Shrek API"
-
-  endpoint_configuration {
-    types = ["REGIONAL"]
-  }
+resource "aws_api_gateway_rest_api" "TeamSequoiaAPI" {
+  name        = "TeamSequoiaAPI"
+  description = "This is Team Sequoia' API."
 }
 
-resource "aws_api_gateway_resource" "shrek_root" {
-  rest_api_id = aws_api_gateway_rest_api.shrek.id
-  parent_id   = aws_api_gateway_rest_api.shrek.root_resource_id
-  path_part   = "{proxy+}"
+resource "aws_api_gateway_resource" "TeamSequoiaAPIresource" {
+  rest_api_id = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  parent_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.root_resource_id
+  path_part   = var.endpoint_path
 }
 
-################################# GET ACTION #######################################
-
-resource "aws_api_gateway_method" "GetMethod" {
-  rest_api_id   = aws_api_gateway_rest_api.shrek.id
-  resource_id   = aws_api_gateway_resource.shrek_root.id
+resource "aws_api_gateway_method" "TeamSequoiaAPI_Get_Method" {
+  rest_api_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id   = aws_api_gateway_resource.TeamSequoiaAPIresource.id
   http_method   = "GET"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method_response" "Get200" {
-  rest_api_id = aws_api_gateway_rest_api.shrek.id
-  resource_id = aws_api_gateway_resource.shrek_root.id
-  http_method = aws_api_gateway_method.GetMethod.http_method
-  status_code = "200"
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = true
-    "method.response.header.Access-Control-Allow-Methods" = true
-    "method.response.header.Access-Control-Allow-Origin"  = true
-  }
-}
-
-resource "aws_api_gateway_integration" "GetInt" {
-  rest_api_id             = aws_api_gateway_rest_api.shrek.id
-  resource_id             = aws_api_gateway_resource.shrek_root.id
-  http_method             = aws_api_gateway_method.GetMethod.http_method
-  integration_http_method = "POST"
-  type                    = "AWS"
-  uri                     = aws_lambda_function.ShrekGet.invoke_arn
-}
-
-resource "aws_api_gateway_integration_response" "GetResponse200" {
-  depends_on  = [aws_api_gateway_integration.GetInt]
-  rest_api_id = aws_api_gateway_rest_api.shrek.id
-  resource_id = aws_api_gateway_resource.shrek_root.id
-  http_method = aws_api_gateway_method.GetMethod.http_method
-  status_code = "200"
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'*'"
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-}
-
-
-
-
-
-################################### PUT ACTION #################################
-
-resource "aws_api_gateway_method" "PutMethod" {
-  rest_api_id   = aws_api_gateway_rest_api.shrek.id
-  resource_id   = aws_api_gateway_resource.shrek_root.id
-  http_method   = "PUT"
+resource "aws_api_gateway_method" "TeamSequoiaAPI_Post_Method" {
+  rest_api_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id   = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method   = "POST"
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method_response" "Put200" {
-  rest_api_id = aws_api_gateway_rest_api.shrek.id
-  resource_id = aws_api_gateway_resource.shrek_root.id
-  http_method = aws_api_gateway_method.PutMethod.http_method
+data "aws_lambda_function" "lambda" {
+  function_name = aws_lambda_function.lambda.function_name
+}
+
+resource "aws_api_gateway_integration" "Get_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id             = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method             = aws_api_gateway_method.TeamSequoiaAPI_Get_Method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = data.aws_lambda_function.lambda.arn
+}
+
+resource "aws_api_gateway_integration" "Post_integration" {
+  rest_api_id             = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id             = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method             = aws_api_gateway_method.TeamSequoiaAPI_Post_Method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = data.aws_lambda_function.lambda.arn
+}
+
+resource "aws_api_gateway_method" "TeamSequoia_options" {
+  rest_api_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id   = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "TeamSequoia_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method = aws_api_gateway_method.TeamSequoia_options.http_method
   status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
 
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = true
@@ -84,72 +69,69 @@ resource "aws_api_gateway_method_response" "Put200" {
   }
 }
 
-resource "aws_api_gateway_integration" "PutInt" {
-  rest_api_id             = aws_api_gateway_rest_api.shrek.id
-  resource_id             = aws_api_gateway_resource.shrek_root.id
-  http_method             = aws_api_gateway_method.PutMethod.http_method
-  integration_http_method = "PUT"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.ShrekPut.invoke_arn
+resource "aws_api_gateway_integration" "TeamSequoia_options" {
+  rest_api_id = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method = aws_api_gateway_method.TeamSequoia_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = <<EOF
+{
+  "statusCode" : 200
 }
-
-resource "aws_api_gateway_integration_response" "PutResponse200" {
-  depends_on  = [aws_api_gateway_integration.PutInt]
-  rest_api_id = aws_api_gateway_rest_api.shrek.id
-  resource_id = aws_api_gateway_resource.shrek_root.id
-  http_method = aws_api_gateway_method.PutMethod.http_method
-  status_code = "200"
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'*'"
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+EOF
   }
 }
 
+resource "aws_api_gateway_integration_response" "TeamSequoia_options" {
+  rest_api_id = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  resource_id = aws_api_gateway_resource.TeamSequoiaAPIresource.id
+  http_method = aws_api_gateway_method.TeamSequoia_options.http_method
+  status_code = aws_api_gateway_method_response.TeamSequoia_options_200.status_code
 
-################## DEPLOYMENT & STAGE ###################################
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 
-resource "aws_api_gateway_deployment" "shrekDeployment" {
-  rest_api_id = aws_api_gateway_rest_api.shrek.id
+  response_templates = {
+    "application/json" = ""
+  }
+}
+
+resource "aws_lambda_permission" "TeamSequoiaapigw_lambda" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = data.aws_lambda_function.lambda.arn
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.TeamSequoiaAPI.execution_arn}/*/*${aws_api_gateway_resource.TeamSequoiaAPIresource.path}"
+}
+
+resource "aws_api_gateway_deployment" "api_deployment" {
+  depends_on    = [
+    aws_api_gateway_integration.Get_integration,
+    aws_api_gateway_integration.Post_integration,
+    aws_api_gateway_integration.TeamSequoia_options,
+  ]
+  rest_api_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.id
 
   triggers = {
-    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.shrek.body))
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.TeamSequoiaAPI.body))
   }
 
   lifecycle {
     create_before_destroy = true
   }
-
-  depends_on = [
-    aws_api_gateway_method.GetMethod,
-    aws_api_gateway_method.PutMethod,
-    aws_api_gateway_integration.GetInt,
-    aws_api_gateway_integration.PutInt,
-  ]
 }
 
-resource "aws_api_gateway_stage" "shrekStage" {
-  deployment_id = aws_api_gateway_deployment.shrekDeployment.id
-  rest_api_id   = aws_api_gateway_rest_api.shrek.id
-  stage_name    = "prod"
+resource "aws_api_gateway_stage" "api-stage" {
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+  rest_api_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.id
+  stage_name    = "dev"
 }
 
-
-############################ LAMBDA PERMISSION ################################
-
-resource "aws_lambda_permission" "ShrekGet" {
-  function_name = aws_lambda_function.ShrekGet.function_name
-  statement_id  = "AllowExecutionFromApiGateway"
-  action        = "lambda:InvokeFunction"
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.shrek.execution_arn}/*"
-}
-
-resource "aws_lambda_permission" "ShrekPut" {
-  function_name = aws_lambda_function.ShrekPut.function_name
-  statement_id  = "AllowExecutionFromApiGatewayPut"
-  action        = "lambda:InvokeFunction"
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.shrek.execution_arn}/*"
+output "api_url" {
+  value = aws_api_gateway_deployment.api_deployment.invoke_url
 }

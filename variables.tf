@@ -67,3 +67,9 @@ variable "private_subnet_count" {
   description = "private subnet count description"
   default     = 2
 }
+
+variable "endpoint_path" {
+  description = "The GET endpoint path"
+  type        = string
+  default     = "method"
+}
