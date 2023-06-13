@@ -27,13 +27,23 @@ data "aws_lambda_function" "lambda" {
   function_name = aws_lambda_function.lambda.function_name
 }
 
+
 resource "aws_api_gateway_integration" "Get_integration" {
   rest_api_id             = aws_api_gateway_rest_api.TeamSequoiaAPI.id
   resource_id             = aws_api_gateway_resource.TeamSequoiaAPIresource.id
   http_method             = aws_api_gateway_method.TeamSequoiaAPI_Get_Method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = data.aws_lambda_function.lambda.arn
+  uri                     = aws_lambda_function.lambda.invoke_arn
+
+  request_templates = {
+    "application/json" = <<EOF
+{
+  "httpMethod": "$context.httpMethod",
+  "body": "$util.escapeJavaScript($input.body)"
+}
+EOF
+  }
 }
 
 resource "aws_api_gateway_integration" "Post_integration" {
@@ -42,8 +52,21 @@ resource "aws_api_gateway_integration" "Post_integration" {
   http_method             = aws_api_gateway_method.TeamSequoiaAPI_Post_Method.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = data.aws_lambda_function.lambda.arn
+  uri                     = aws_lambda_function.lambda.invoke_arn
+
+request_templates = {
+    "application/json" = <<EOF
+{
+  "httpMethod": "$context.httpMethod",
+  "body": "$util.escapeJavaScript($input.body)"
 }
+EOF
+  }
+}
+
+
+
+
 
 resource "aws_api_gateway_method" "TeamSequoia_options" {
   rest_api_id   = aws_api_gateway_rest_api.TeamSequoiaAPI.id
@@ -104,10 +127,11 @@ resource "aws_api_gateway_integration_response" "TeamSequoia_options" {
 resource "aws_lambda_permission" "TeamSequoiaapigw_lambda" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = data.aws_lambda_function.lambda.arn
+  function_name = data.aws_lambda_function.lambda.arn  # Update this line
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.TeamSequoiaAPI.execution_arn}/*/*${aws_api_gateway_resource.TeamSequoiaAPIresource.path}"
 }
+
 
 resource "aws_api_gateway_deployment" "api_deployment" {
   depends_on    = [

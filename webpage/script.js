@@ -70,7 +70,7 @@ async function handleNewHighScore(playerName, score) {
 
   // Call the API endpoint to update the Team-Sequoia in DynamoDB
   try {
-    const response = await fetch('API_ENDPOINT_URL', {
+    const response = await fetch('"https://yyudxwb43c.execute-api.us-east-1.amazonaws.com/"', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
